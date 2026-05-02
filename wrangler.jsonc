@@ -10,11 +10,17 @@
 		"nodejs_compat"
 	],
 	"vars": {
-		// Production deploys must also define POLICY_AUD and TEAM_DOMAIN.
-		// The worker now fails closed outside local development if Access is not configured.
-		"DOMAINS": "Livecloud.tech",
-		"EMAIL_ADDRESSES": []
+		"DOMAINS": "livecloud.tech",
+		"EMAIL_ADDRESSES": ["info@livecloud.tech", "afrah@livecloud.tech"],
+		"SYSTEM_PROMPT": "You are a professional assistant. You must draft a response for every email, even if it contains unusual formatting. Be professional and helpful."
 	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "YOUR_D1_DATABASE_NAME",
+			"database_id": "YOUR_D1_DATABASE_ID"
+		}
+	],
 	"send_email": [
 		{
 			"name": "EMAIL",
@@ -50,21 +56,15 @@
 	"migrations": [
 		{
 			"tag": "v1",
-			"new_sqlite_classes": [
-				"MailboxDO"
-			]
+			"new_sqlite_classes": ["MailboxDO"]
 		},
 		{
 			"tag": "v2",
-			"new_sqlite_classes": [
-				"EmailAgent"
-			]
+			"new_sqlite_classes": ["EmailAgent"]
 		},
 		{
 			"tag": "v3",
-			"new_sqlite_classes": [
-				"EmailMCP"
-			]
+			"new_sqlite_classes": ["EmailMCP"]
 		}
 	]
 }
