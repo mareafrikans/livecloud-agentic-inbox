@@ -14,13 +14,6 @@
 		"EMAIL_ADDRESSES": ["info@livecloud.tech", "afrah@livecloud.tech"],
 		"SYSTEM_PROMPT": "You are a professional assistant. You must draft a response for every email, even if it contains unusual formatting. Be professional and helpful."
 	},
-	"d1_databases": [
-		{
-			"binding": "DB",
-			"database_name": "YOUR_ACTUAL_DB_NAME",
-			"database_id": "YOUR_ACTUAL_DB_ID"
-		}
-	],
 	"send_email": [
 		{
 			"name": "EMAIL",
@@ -56,15 +49,21 @@
 	"migrations": [
 		{
 			"tag": "v1",
-			"new_sqlite_classes": ["MailboxDO"]
+			"new_sqlite_classes": [
+				"MailboxDO"
+			]
 		},
 		{
 			"tag": "v2",
-			"new_sqlite_classes": ["EmailAgent"]
+			"new_sqlite_classes": [
+				"EmailAgent"
+			]
 		},
 		{
 			"tag": "v3",
-			"new_sqlite_classes": ["EmailMCP"]
+			"new_sqlite_classes": [
+				"EmailMCP"
+			]
 		}
 	]
 }
