@@ -20,18 +20,27 @@ export default function MailboxSplitView({
 	const isPanelOpen = selectedEmailId !== null || isComposing;
 
 	return (
-		<div className="flex h-full">
+		/* 
+		   FIX: Changed to flex-col for mobile (stacked) and flex-row for desktop.
+		   Added w-full and mx-auto to ensure it centers and fills the screen.
+		*/
+		<div className="flex flex-col md:flex-row h-full w-full mx-auto overflow-hidden">
 			<div
 				className={`flex flex-col min-w-0 shrink-0 ${
 					isPanelOpen
-						? "hidden md:flex md:w-[380px] md:border-r md:border-kumo-line"
+						? "w-full md:w-[380px] border-b md:border-b-0 md:border-r border-kumo-line"
 						: "w-full"
 				}`}
 			>
 				{children}
 			</div>
+
 			{isPanelOpen && (
-				<div className="flex-1 flex flex-col min-w-0 overflow-hidden w-full md:w-auto">
+				/* 
+				   FIX: Ensure the panel takes full width on mobile when open 
+				   and scrolls independently.
+				*/
+				<div className="flex-1 flex flex-col min-w-0 overflow-hidden w-full h-full">
 					{isComposing && !selectedEmailId ? (
 						<ComposePanel />
 					) : isComposing && selectedEmailId ? (
