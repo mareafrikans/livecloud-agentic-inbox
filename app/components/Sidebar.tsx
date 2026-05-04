@@ -13,6 +13,7 @@ import {
 	PlusIcon,
 	TrashIcon,
 	TrayIcon,
+	XIcon, // Added for mobile close button
 } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 import { NavLink, useNavigate, useParams } from "react-router";
@@ -78,7 +79,10 @@ export default function Sidebar() {
 	const navigate = useNavigate();
 	const { data: folders = [] } = useFolders(mailboxId);
 	const createFolderMutation = useCreateFolder();
-	const { startCompose, closeSidebar } = useUIStore();
+	
+	/* FIX: isSidebarOpen determines if we show the sidebar on mobile */
+	const { startCompose, closeSidebar, isSidebarOpen } = useUIStore();
+	
 	const { data: currentMailbox } = useMailbox(mailboxId);
 	const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
 	const [newFolderName, setNewFolderName] = useState("");
@@ -105,7 +109,6 @@ export default function Sidebar() {
 
 	const displayName = useMemo(() => {
 		if (!currentMailbox) return mailboxId?.split("@")[0] || "Mailbox";
-		// Prefer settings.fromName > name > local part of email
 		if (currentMailbox.settings?.fromName) {
 			return currentMailbox.settings.fromName;
 		}
@@ -116,25 +119,39 @@ export default function Sidebar() {
 	}, [currentMailbox, mailboxId]);
 
 	const handleNavClick = () => {
-		// Close mobile sidebar on navigation
 		closeSidebar();
 	};
 
 	return (
-		<aside className="h-full w-64 bg-kumo-recessed flex flex-col shrink-0 border-r border-kumo-line">
+		/* 
+		   FIX: 
+		   1. Added conditional 'hidden' logic: hidden on mobile unless isSidebarOpen is true.
+		   2. Changed 'w-64' to 'w-full md:w-64' so it fills the screen on mobile phones.
+		   3. Added z-index (z-40) to ensure it appears above the email list on mobile.
+		*/
+		<aside className={`${isSidebarOpen ? 'flex' : 'hidden'} md:flex h-full w-full md:w-64 bg-kumo-recessed flex-col shrink-0 border-r border-kumo-line z-40 fixed md:relative top-0 left-0`}>
+			
 			{/* Back + identity */}
 			<div className="px-4 pt-4 pb-1">
-				<button
-					type="button"
-					onClick={() => {
-						navigate("/");
-						closeSidebar();
-					}}
-					className="flex items-center gap-1.5 text-kumo-subtle text-sm hover:text-kumo-default transition-colors mb-2.5 cursor-pointer bg-transparent border-0 p-0"
-				>
-					<CaretLeftIcon size={14} />
-					<span>Mailboxes</span>
-				</button>
+				<div className="flex justify-between items-center mb-2.5">
+					<button
+						type="button"
+						onClick={() => {
+							navigate("/");
+							closeSidebar();
+						}}
+						className="flex items-center gap-1.5 text-kumo-subtle text-sm hover:text-kumo-default transition-colors cursor-pointer bg-transparent border-0 p-0"
+					>
+						<CaretLeftIcon size={14} />
+						<span>Mailboxes</span>
+					</button>
+					
+					{/* FIX: Close button for mobile users */}
+					<button onClick={closeSidebar} className="md:hidden p-1 text-kumo-subtle">
+						<XIcon size={20} />
+					</button>
+				</div>
+				
 				<div className="px-1">
 					<div className="text-base font-semibold text-kumo-default truncate">
 						{displayName}
@@ -150,7 +167,10 @@ export default function Sidebar() {
 				<Button
 					variant="primary"
 					icon={<PencilSimpleIcon size={16} />}
-					onClick={() => startCompose()}
+					onClick={() => {
+						startCompose();
+						closeSidebar(); // Close sidebar on mobile after clicking compose
+					}}
 					className="w-full"
 				>
 					Compose
@@ -171,67 +191,39 @@ export default function Sidebar() {
 				))}
 
 				{/* Custom folders */}
-				{customFolders.length > 0 && (
-					<div className="pt-5">
-						<div className="flex items-center justify-between px-3 mb-1.5">
-							<span className="text-xs uppercase tracking-wider font-semibold text-kumo-subtle">
-								Folders
-							</span>
-							<Tooltip content="New folder" asChild>
-								<Button
-									variant="ghost"
-									shape="square"
-									size="sm"
-									icon={<PlusIcon size={16} />}
-									onClick={() => setIsCreateFolderOpen(true)}
-									aria-label="Create new folder"
-								/>
-							</Tooltip>
-						</div>
-						{customFolders.map((folder) => (
-							<FolderLink
-								key={folder.id}
-								to={`/mailbox/${mailboxId}/emails/${folder.id}`}
-								icon={<FolderIcon size={18} />}
-								label={folder.name}
-								unreadCount={folder.unreadCount}
-								onClick={handleNavClick}
+				<div className="pt-5">
+					<div className="flex items-center justify-between px-3 mb-1.5">
+						<span className="text-xs uppercase tracking-wider font-semibold text-kumo-subtle">
+							Folders
+						</span>
+						<Tooltip content="New folder" asChild>
+							<Button
+								variant="ghost"
+								shape="square"
+								size="sm"
+								icon={<PlusIcon size={16} />}
+								onClick={() => setIsCreateFolderOpen(true)}
+								aria-label="Create new folder"
 							/>
-						))}
+						</Tooltip>
 					</div>
-				)}
-
-				{/* Add folder button when no custom folders */}
-				{customFolders.length === 0 && (
-					<div className="pt-5">
-						<div className="flex items-center justify-between px-3 mb-1.5">
-							<span className="text-xs uppercase tracking-wider font-semibold text-kumo-subtle">
-								Folders
-							</span>
-							<Tooltip content="New folder" asChild>
-								<Button
-									variant="ghost"
-									shape="square"
-									size="sm"
-									icon={<PlusIcon size={16} />}
-									onClick={() => setIsCreateFolderOpen(true)}
-									aria-label="Create new folder"
-								/>
-							</Tooltip>
-						</div>
-					</div>
-				)}
+					{customFolders.map((folder) => (
+						<FolderLink
+							key={folder.id}
+							to={`/mailbox/${mailboxId}/emails/${folder.id}`}
+							icon={<FolderIcon size={18} />}
+							label={folder.name}
+							unreadCount={folder.unreadCount}
+							onClick={handleNavClick}
+						/>
+					))}
+				</div>
 			</nav>
 
-			{/* Create folder dialog */}
-			<Dialog.Root
-				open={isCreateFolderOpen}
-				onOpenChange={setIsCreateFolderOpen}
-			>
+			{/* Create folder dialog stays the same */}
+			<Dialog.Root open={isCreateFolderOpen} onOpenChange={setIsCreateFolderOpen}>
 				<Dialog size="sm" className="p-6">
-					<Dialog.Title className="text-base font-semibold mb-4">
-						Create folder
-					</Dialog.Title>
+					<Dialog.Title className="text-base font-semibold mb-4">Create folder</Dialog.Title>
 					<form onSubmit={handleCreateFolder} className="space-y-4">
 						<Input
 							label="Folder name"
@@ -241,20 +233,8 @@ export default function Sidebar() {
 							required
 						/>
 						<div className="flex justify-end gap-2">
-							<Dialog.Close
-								render={(props) => (
-									<Button {...props} variant="secondary">
-										Cancel
-									</Button>
-								)}
-							/>
-							<Button
-								type="submit"
-								variant="primary"
-								disabled={!newFolderName.trim()}
-							>
-								Create
-							</Button>
+							<Dialog.Close render={(props) => <Button {...props} variant="secondary">Cancel</Button>} />
+							<Button type="submit" variant="primary" disabled={!newFolderName.trim()}>Create</Button>
 						</div>
 					</form>
 				</Dialog>
